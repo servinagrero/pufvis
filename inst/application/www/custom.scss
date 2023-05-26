@@ -1,0 +1,15 @@
+$blue: #084ccf;
+
+a {
+  font-family: monospace;
+  color: $blue !important;
+  text-decoration: none;
+}
+
+a:hover {
+  background-color: rgba(0,0,0,0.03) !important;
+}
+
+ul.nav-tabs {
+  margin-bottom: 1em;
+}
