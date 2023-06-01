@@ -7,15 +7,14 @@ crps_heatmap <- reactive({
   crp_table()[, , input$refSampleHeatmap] %>%
     reshape2::melt() %>%
     rename(device = "Var1", challenge = "Var2", response = "value") %>%
-    mutate(response = as.character(response)) %>%
-    plot_ly(
-      x = ~challenge, y = ~device, z = ~response,
+    plot_ly(x = ~challenge, y = ~device, z = ~response,
+      color = ~response,
       name = "Response", type = "heatmap",
       hovertemplate = "Device: %{y}<br>Challenge: %{x}<br>Response: %{z}",
-      showscale = TRUE
+      colors = viridis::viridis_pal(option = "D")(2),
+      showscale = FALSE
     ) %>%
     layout(
-      title = "Response distribution",
       xaxis = list(title = "Challenge"),
       yaxis = list(title = "Device")
     )
@@ -27,7 +26,6 @@ crpsDistrib <- reactive({
     return(NULL)
   }
   devs <- stringr::str_sort(dimnames(crp_table())[[1]], numeric = TRUE)
-  # gtools::mixedsort(dimnames(crp_table())[[1]])
   apply(crp_table(), 3, function(m) apply(m, 1, pufr::ratio_bits)) %>%
     as.data.frame() %>%
     mutate(device = devs) %>%
@@ -38,7 +36,10 @@ crpsDistrib <- reactive({
       type = "heatmap", colors = viridis::viridis(length(devs)),
       hovertemplate = "Device: %{x}<br>Sample: %{y}<br>Ratio: %{z}"
     ) %>%
-    layout(xaxis = list(categoryorder = "array", categoryarray = devs))
+    layout(
+      xaxis = list(title = "Device", categoryorder = "array", categoryarray = devs),
+      yaxis = list(title = "Sample")
+      )
 })
 output$crpsDistribution <- renderPlotly(crpsDistrib())
 
