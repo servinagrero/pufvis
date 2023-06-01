@@ -28,7 +28,7 @@ fluidPage(
       mainPanel(
         width = 12,
         markdown("Maximum size of **4GB** is allowed."),
-        p("Accepted files are .csv, .tsv, .rds and .h5"),
+        p("Accepted files are .csv, .tsv, .rds"),
         shiny::fluidRow(
           column(
             6,
@@ -36,7 +36,7 @@ fluidPage(
             fileInput("crpsFile",
               label = "CRP Data",
               buttonLabel = "Browse...",
-              accept = c(".csv", ".tsv", ".rds", ".h5")
+              accept = c(".csv", ".tsv", ".rds")
             ),
             markdown("
                    If CSV or TSV is supplied, the following columns are required:
@@ -55,7 +55,7 @@ fluidPage(
             fileInput("rawData",
               label = "Raw data",
               buttonLabel = "Browse...",
-              accept = c(".csv", ".tsv", ".rds", ".h5")
+              accept = c(".csv", ".tsv", ".rds")
             ),
             helpText("The generation algorithm should be chosen before loading the raw data"),
             selectInput("crpAlgorithm",
@@ -183,7 +183,10 @@ fluidPage(
     tabPanel("About",
       fluid = TRUE,
       icon = icon("info"),
-      includeMarkdown("www/about.md")
+      mainPanel(
+        width = 12,
+        column(6, includeMarkdown("www/about.md"))
+      )
     )
   )
 )
