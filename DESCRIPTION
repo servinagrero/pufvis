@@ -1,17 +1,21 @@
 Package: pufvis
-Title: What the Package Does (One Line, Title Case)
+Title: Exploration and Analysis of Physical Unclonable Functions
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Sergio", "Vinagrero", , "servinagrero@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-7460-3187"))
+Description: PUFVIS provides tools and a shiny application to explore and analyse responses from Physical Unclonable Functions.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Imports: 
     shiny,
-    dplyr,
+    shinyalert,
+    shinycssloaders,
     abind,
+    dplyr,
+    ggplot2,
     plotly,
+    openxlsx,
     pufr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3

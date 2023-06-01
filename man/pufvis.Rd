@@ -4,14 +4,14 @@
 \alias{pufvis}
 \title{Open the shiny application}
 \usage{
-pufvis(crps = NULL, algorithms = algorithms, maxRequestSize = NULL, ...)
+pufvis(crps = NULL, algos = algorithms, ...)
 }
 \arguments{
 \item{crps}{Array or dataframe containing the crps}
 
-\item{algorithms}{List of algorithms used to create the CPRs from the raw responses}
+\item{...}{Rest of the arguments passed to \code{shiny::runApp}}
 
-\item{maxRequestSize}{Maximum size in bytes of files to upload to the server}
+\item{algorithms}{List of algorithms used to create the CPRs from the raw responses}
 }
 \description{
 Open the shiny application
