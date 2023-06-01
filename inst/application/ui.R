@@ -1,18 +1,21 @@
 library(bslib)
 library(bsicons)
-library(shinycssloaders) # withSpinner
-library(plotly)
-library(sass)
-library(pufvis)
+library(shinycssloaders)
 library(shinyalert)
+library(sass)
+library(plotly)
+library(pufvis)
+
+options(
+  spinner.color = "#0275D8",
+  spinner.color.background = "#ffffff",
+  spinner.type = 8
+)
 
 fluidPage(
   theme = bs_theme(
     version = 5,
-    bootswatch = "zephyr",
-    base_font = font_google("Open Sans"),
-    heading_font = font_google("Source Code Pro"),
-    code_font = font_google("Source Code Pro")
+    bootswatch = "zephyr"
   ),
   tags$style(sass(sass_file("www/custom.scss"))),
   withMathJax(),
@@ -22,22 +25,22 @@ fluidPage(
     tabPanel("Import",
       fluid = TRUE,
       icon = icon("arrow-up"),
-      h2("Import CRPs or raw responses"),
       mainPanel(
         width = 12,
         markdown("Maximum size of **4GB** is allowed."),
+        p("Accepted files are .csv, .tsv, .rds and .h5"),
         shiny::fluidRow(
           column(
             6,
-            helpText("Accepted files are .csv, .tsv, .rds and .h5"),
+            h2("Import CRPs"),
             fileInput("crpsFile",
               label = "CRP Data",
-              buttonLabel = "Browse file",
+              buttonLabel = "Browse...",
               accept = c(".csv", ".tsv", ".rds", ".h5")
             ),
             markdown("
                    If CSV or TSV is supplied, the following columns are required:
-                   - **device**: Number of string identifying the device.
+                   - **device**: Number or string identifying the device.
                    - **challenge**: Numeric index of the challenge.
                    - **response**: Binary response of the challenge.
                    - **sample**: Number of string indentifying the sample.
@@ -48,10 +51,10 @@ fluidPage(
           ),
           column(
             6,
-            h2("WORK IN PROGRESS"),
+            h2("Create CRPs from responses"),
             fileInput("rawData",
               label = "Raw data",
-              buttonLabel = "Browse file",
+              buttonLabel = "Browse...",
               accept = c(".csv", ".tsv", ".rds", ".h5")
             ),
             helpText("The generation algorithm should be chosen before loading the raw data"),
@@ -67,28 +70,35 @@ fluidPage(
     tabPanel("Explore",
       fluid = TRUE,
       icon = icon("search"),
-      titlePanel("Responses exploration"),
-      sidebarLayout(
-        sidebarPanel(
-          uiOutput("referenceSample"),
-          uiOutput("crpsExplore"),
-          width = 3
-        ),
-        mainPanel(
-          withSpinner(plotlyOutput("crpsHeatmap")),
-          withSpinner(plotlyOutput("crpsDistribution")),
-          width = 9
+      mainPanel(
+        width = 12,
+        column(6, uiOutput("crpsExplore")),
+        fluidRow(
+          column(
+            6,
+            h2("Response heatmap"),
+            p("2D heatmap showing the distribution of responses for each device and challenge."),
+            withSpinner(plotlyOutput("crpsHeatmap")),
+            uiOutput("referenceSample")
+          ),
+          column(
+            6,
+            h2("Response bit ratio"),
+            p("A positive ratio implies more 1s than 0s and a negative ratio, the opposite."),
+            withSpinner(plotlyOutput("crpsDistribution"))
+          )
         )
       )
     ),
     tabPanel("Metrics",
       fluid = TRUE,
       icon = icon("bar-chart"),
-      titlePanel("PUF Metrics"),
       sidebarLayout(
         sidebarPanel(
           uiOutput("referenceSample2"),
-          checkboxInput("normPlots", "Force metrics output to the full range [0, 1]", value = FALSE),
+          checkboxInput("normPlots", "Force output to range [0, 1]", value = FALSE),
+          checkboxInput("entropyResults", "Force results to be entropy", value = FALSE),
+          helpText("When entropy calculation is enabled, the binary entropy of each metric is computed instead."),
           width = 3
         ),
         mainPanel(
@@ -96,44 +106,46 @@ fluidPage(
             tabPanel(
               "Uniformity",
               value = "tab_uniformity",
-              value_box(
-                title = "Uniformity",
-                value = "Uniformity",
-                showcase = bs_icon("bar-chart")
-              ),
-              withSpinner(splitLayout(
-                cellWidths = c("50%", "50%"),
-                plotOutput("unifHist"), plotOutput("unifScatter")
-              )),
+              h2("Uniformity distribution"),
+              withSpinner(plotOutput("unifHist")),
+              h2("Uniformity per device"),
+              withSpinner(plotlyOutput("unifScatter"))
             ),
             tabPanel(
               "Bitaliasing",
               value = "tab_bitaliasing",
-              withSpinner(splitLayout(
-                cellWidths = c("50%", "50%"),
-                plotOutput("bitaliasHist"), plotOutput("bitaliasScatter")
-              )),
+              h2("Bitaliasing distribution"),
+              withSpinner(plotOutput("bitaliasHist")),
+              h2("Bitaliasing per challenge"),
+              withSpinner(plotlyOutput("bitaliasScatter"))
             ),
             tabPanel(
               "Uniqueness",
               value = "tab_uniqueness",
-              tags$p("Number of pairs calculated as \\(N = \\frac{D * (D-1)}{2}\\)"),
+              h2("Uniqueness distribution"),
+              tags$p("Number of pairs calculated as \\(N = (D * (D-1)) / 2\\)"),
               textOutput("uniqPairs"),
               withSpinner(plotlyOutput("uniqHist")),
+              h2("Inter-HD across all devices"),
               withSpinner(plotlyOutput("uniqPairsPlot"))
             ),
             tabPanel(
               "Reliability",
               value = "tab_reliability",
-              plotOutput("relHist"),
-              plotOutput("relScatter"),
-              plotOutput("relBitalias"),
+              h2("Reliability distribution"),
+              withSpinner(plotOutput("relHist")),
+              h2("Reliability per challenge"),
+              withSpinner(plotlyOutput("relScatter")),
+              h2("Bitaliasing VS Reliability"),
+              withSpinner(plotlyOutput("relBitalias"))
             ),
             tabPanel(
               "Rel. Entropy",
               value = "tab_relentropy",
-              plotOutput("relEntropyHist"),
-              plotOutput("relEntropyScatter"),
+              h2("Reliable entropy distribution"),
+              withSpinner(plotOutput("relEntropyHist")),
+              h2("Reliable entropy per challenge"),
+              withSpinner(plotlyOutput("relEntropyScatter"))
             ),
           ),
           width = 9
@@ -143,8 +155,7 @@ fluidPage(
     tabPanel("Export",
       fluid = TRUE,
       icon = icon("list"),
-      titlePanel("Metrics Summary"),
-      sidebarLayout(
+      shiny::sidebarLayout(
         sidebarPanel(
           selectInput(
             inputId = "tableColumns",
@@ -153,20 +164,19 @@ fluidPage(
             selected = pufvis::columns_summary,
             multiple = TRUE
           ),
-          hr(),
-          downloadButton("exportMetrics", "Export metrics to CSV")
+          selectInput(
+            inputId = "metricsTableFormat",
+            label = "Format to export",
+            choices = c("latex", "html", "pipe", "simple", "rst"),
+            selected = "latex",
+          ),
+          downloadButton("exportExcel", "Export metrics to Excel"),
+          downloadButton("exportTable", "Export table to CSV")
         ),
         mainPanel(
-          # layout_column_wrap(
-          #   width = "250px",
-          #   value_box(
-          #     title = "Uniformity",
-          #     value = "Uniformity",
-          #     showcase = bs_icon("bar-chart"),
-          #   )
-          # ),
-          tableOutput("metricsTable"),
-          verbatimTextOutput("metricsExportTable")
+          tableOutput("metricsSummaryTable"),
+          h3("Text Output"),
+          verbatimTextOutput("metricsTableText")
         )
       )
     ),

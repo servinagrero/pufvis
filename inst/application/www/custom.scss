@@ -13,3 +13,7 @@ a:hover {
 ul.nav-tabs {
   margin-bottom: 1em;
 }
+
+.navbar.navbar-default, .well {
+  background-color: rgba($blue, .03) !important;
+}
