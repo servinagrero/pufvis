@@ -18,6 +18,14 @@ observeEvent(input$crpsFile, {
         "CRP data loaded successfully.",
         type = "success"
       )
+
+      samples <- dimnames(crp_table())[[3]]
+      updateSelectInput(
+        session,
+        "refSampleHeatmap",
+        choices = samples,
+        selected = samples[[1]]
+      )
     },
     error = function(err) {
       shinyalert("Problem uploading CRPs",

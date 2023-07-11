@@ -79,7 +79,10 @@ fluidPage(
             h2("Response heatmap"),
             p("2D heatmap showing the distribution of responses for each device and challenge."),
             withSpinner(plotlyOutput("crpsHeatmap")),
-            uiOutput("referenceSample")
+            selectInput(inputId = "refSampleHeatmap",
+                        label = "Reference sample",
+                        choices = c()
+            )
           ),
           column(
             6,

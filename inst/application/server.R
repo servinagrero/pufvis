@@ -10,22 +10,10 @@ theme_set(theme_minimal(base_family = "Inter") + theme(text = element_text(size 
 
 
 function(input, output, session) {
-  session$onSessionEnded(stopApp)
+  # session$onSessionEnded(stopApp)
 
   source("import.R", local = TRUE)$value
   source("metrics.R", local = TRUE)$value
-
-  output$referenceSample <- renderUI({
-    if (is.null(crp_table())) {
-      return(NULL)
-    }
-    selectInput(
-      inputId = "refSampleHeatmap",
-      label = "Sample to display",
-      choices = dimnames(crp_table())[[3]],
-      multiple = FALSE,
-    )
-  })
 
   output$crpsExplore <- renderUI({
     size <- dim(crp_table())

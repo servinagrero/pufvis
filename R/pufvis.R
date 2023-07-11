@@ -34,6 +34,7 @@ df_to_crps <- function(crps) {
   nchallenges <- max(crps$challenge)
   crp_mat <- crps %>%
     arrange(sample, device, challenge) %>%
+    mutate(response = as.as.integer(response)) %>% # Reduce memory usage
     group_by(sample) %>%
     group_map(function(x, ...) t(matrix(x$response, nrow = nchallenges, ncol = ndevs, byrow = TRUE)))
   arr <- do.call(abind, c(crp_mat, along = 3))
@@ -56,13 +57,10 @@ df_to_crps <- function(crps) {
 compute_metrics <- function(crp_table, ref_sample = 1) {
   crps <- crp_table[, , ref_sample]
   m <- list(
-    devices = dimnames(crp_table)[[1]],
-    challenges = dimnames(crp_table)[[2]],
-    samples = dimnames(crp_table)[[3]],
     unif = as.vector(pufr::crps_weight(crps, 1)),
     bitalias = as.vector(pufr::crps_weight(crps, 2)),
     uniq = pufr::uniqueness(crps),
-    ratio = apply(crps, 2, pufr::ratio_bits),
+    bitratio = apply(crps, 2, pufr::ratio_bits),
     rel = pufr::reliability(crp_table, ref_sample)
   )
   hba <- pufr::entropy_p(m$bitalias)
@@ -71,6 +69,15 @@ compute_metrics <- function(crp_table, ref_sample = 1) {
     min(hunif_bit, hba) - entropy_p(m$rel[dev_id, ])
   }
   m$relentropy <- t(sapply(seq_len(nrow(crps)), helper))
+  if (is.null(dimnames(crp_table))) {
+    m$devices <- seq_len(dim(crp_table)[[1]])
+    m$challenges <- seq_len(dim(crp_table)[[2]])
+    m$samples <- seq_len(dim(crp_table)[[3]])
+  } else {
+    m$devices <- dimnames(crp_table)[[1]]
+    m$challenges <- dimnames(crp_table)[[2]]
+    m$samples <- dimnames(crp_table)[[3]]
+  }
   class(m) <- "metrics"
   m
 }
@@ -96,10 +103,11 @@ check_crps <- function(crps) {
       stop(paste("Missing fields:", paste(colnames[!req], collapse = ", ")))
     }
   } else if (is.array(crps)) {
-    if (length(dim(crps) != 3)) {
+    if (length(dim(crps)) != 3) {
       stop("CRP array needs at least 2 samples")
     }
   }
+  return(TRUE)
 }
 
 #' @export
